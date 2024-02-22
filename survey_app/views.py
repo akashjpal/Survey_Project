@@ -2,14 +2,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 
-# Create your views here.
 def index(request):
     if request.user.is_authenticated:
         # Redirect to a success page or dashboard page
-        return redirect("success")
-        # return redirect('dashboard')
+        full_uri = request.session.get('full_uri', None)
+        if full_uri is None:
+            return redirect('success')
+        else:
+            del request.session['full_uri']  # Clear the session variable after using it
+            return redirect(full_uri)
     else:
-        full_uri = request.build_absolute_uri()
         return redirect('login')
 
 def login(request):
@@ -24,6 +26,9 @@ def login(request):
             messages.info(request, 'Invalid credentials')
             return render(request, 'login.html')
     else:
+        print("Hello")
+        request.session['full_uri'] = request.build_absolute_uri("/surveys/")
+        print(request.session['full_uri'])
         return render(request, 'login.html')
 
 def logout(request):
@@ -49,5 +54,5 @@ def register(request):
     else:
         return render(request, 'register.html')
 
-def success (request):
+def success(request):
     return render(request, 'success.html')
